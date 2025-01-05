@@ -8,9 +8,13 @@ import {
   IconButton,
   SimpleGrid,
   useToast,
+  Badge,
   Skeleton,
 } from '@chakra-ui/react';
-import { SunIcon, MoonIcon } from '@chakra-ui/icons';
+import { SunIcon, MoonIcon, SettingsIcon } from '@chakra-ui/icons';
+
+import { getTitle, getWinPercentTitle } from '../helpers/titleHelper';
+
 import { account } from '../lib/appwrite';
 import { userService } from '../lib/database';
 import StatCard from '../components/stats/StatCard';
@@ -76,17 +80,23 @@ const Dashboard = ({ user, onLogout, colorMode, toggleColorMode }) => {
   return (
     <Box minH="100vh" p={20}>
       <Flex justifyContent="space-between" alignItems="center" mb={8}>
-        <Heading size="lg">
-          <Skeleton isLoaded={!isLoading} display="inline-block">
-            Welcome, {user.name}!
+        <Flex gap={2} alignItems="center" mb={8}>
+          <Heading size="lg">
+            <Skeleton isLoaded={!isLoading} display="inline-block">
+              Welcome, {user.name}!
+            </Skeleton>
+          </Heading>
+          <Skeleton isLoaded={!isLoading}>
+            <Badge colorScheme="green">{getTitle(stats?.totalScore)}</Badge>
           </Skeleton>
-        </Heading>
+        </Flex>
         <Flex gap={2}>
           <IconButton
             icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
             onClick={toggleColorMode}
             variant="ghost"
           />
+          <IconButton icon={<SettingsIcon />} onClick={toggleColorMode} variant="solid" />
           <Button onClick={handleLogout} colorScheme="red">
             Logout
           </Button>
@@ -94,12 +104,18 @@ const Dashboard = ({ user, onLogout, colorMode, toggleColorMode }) => {
       </Flex>
 
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-        <StatCard label="Games Played" value={stats?.matchesPlayed || '0'} isLoading={isLoading} />
-        <StatCard label="Win Rate" value={stats?.winRate || '0%'} isLoading={isLoading} />
-        <StatCard label="Rating" value={stats?.totalScore || '0'} isLoading={isLoading} />
-        <Button colorScheme="green" w="full">
-          New Game
-        </Button>
+        <Skeleton isLoaded={!isLoading}>
+          <StatCard label="Games Played" value={stats?.matchesPlayed || '0'} />
+        </Skeleton>
+        <Skeleton isLoaded={!isLoading}>
+          <StatCard
+            label="Win Rate"
+            value={stats?.winRate + '\n' + getWinPercentTitle(stats?.winRate)}
+          />
+        </Skeleton>
+        <Skeleton isLoaded={!isLoading}>
+          <StatCard label="Rating" value={stats?.totalScore || '0'} />
+        </Skeleton>
       </SimpleGrid>
     </Box>
   );
