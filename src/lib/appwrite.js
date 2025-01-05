@@ -10,9 +10,9 @@ export const databases = new Databases(client);
 export const appwriteConfig = {
   databaseId: '6779e6550029782140b4',
   collections: {
-    users: 'users',
-    games: 'games',
-    gameSessions: 'game_sessions',
+    users: '6779e66600250fe01b74',
+    games: '6779e674001e97c35d37',
+    gameSessions: '6779e67b00358d167e39',
   },
 };
 

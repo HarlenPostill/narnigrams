@@ -5,6 +5,7 @@ import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import GridBackground from './components/layout/GridBackground';
 import { account } from './lib/appwrite';
+import { userService } from './lib/database';
 
 const App = () => {
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -18,8 +19,9 @@ const App = () => {
 
   const checkSession = async () => {
     try {
-      const user = await account.get();
-      setLoggedInUser(user);
+      const authUser = await account.get();
+      const userProfile = await userService.getProfile(authUser.$id);
+      setLoggedInUser({ ...authUser, ...userProfile });
     } catch (error) {
       console.log('No active session');
     } finally {

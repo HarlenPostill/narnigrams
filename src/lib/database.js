@@ -1,23 +1,18 @@
-import { databases } from './appwrite';
-import { Query } from 'appwrite';
-
-// Replace with your actual database and collection IDs
-const DATABASE_ID = '6779e6550029782140b4';
-const USERS_COLLECTION_ID = 'users';
+import { databases, appwriteConfig } from './appwrite';
+import { ID } from 'appwrite';
 
 export const userService = {
   async createOrGetProfile(userId, name) {
     try {
-      // First try to get existing profile
       const existingUser = await this.getProfile(userId);
       if (existingUser) return existingUser;
 
-      // If no profile exists, create one
       return await databases.createDocument(
-        DATABASE_ID,
-        USERS_COLLECTION_ID,
-        userId, // Use the auth userId as the document ID
+        appwriteConfig.databaseId,
+        appwriteConfig.collections.users,
+        userId,
         {
+          userId: userId,
           username: name,
           gamesPlayed: 0,
           gamesWon: 0,
@@ -34,7 +29,11 @@ export const userService = {
 
   async getProfile(userId) {
     try {
-      return await databases.getDocument(DATABASE_ID, USERS_COLLECTION_ID, userId);
+      return await databases.getDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.collections.users,
+        userId
+      );
     } catch (error) {
       if (error.code === 404) return null;
       throw error;
@@ -43,7 +42,12 @@ export const userService = {
 
   async updateProfile(userId, updates) {
     try {
-      return await databases.updateDocument(DATABASE_ID, USERS_COLLECTION_ID, userId, updates);
+      return await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.collections.users,
+        userId,
+        updates
+      );
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;

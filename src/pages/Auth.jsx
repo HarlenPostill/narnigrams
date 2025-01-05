@@ -1,6 +1,7 @@
 // src/pages/Auth.jsx
 import { useState } from 'react';
 import { account, ID } from '../lib/appwrite';
+import { userService } from '../lib/database';
 import {
   Box,
   Button,
@@ -25,26 +26,45 @@ const Auth = ({ onLogin, colorMode, toggleColorMode }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const toast = useToast();
 
+  const [user, setUser] = useState(null);
+
+  const handleLogin = async authUser => {
+    try {
+      // Get the full user profile including game stats
+      const userProfile = await userService.getProfile(authUser.$id);
+      setUser({ ...authUser, ...userProfile });
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      // Still set the auth user even if profile fetch fails
+      setUser(authUser);
+    }
+  };
+
   async function login(email, password) {
     toast({
       title: 'Signing In',
       status: 'loading',
-      duration: 2000,
+      duration: 4000,
     });
     try {
+      let authUser;
       // Try to get the current session first
       try {
         const session = await account.getSession('current');
         // If we have a session, just get the user
-        const user = await account.get();
-        onLogin(user);
-        return;
+        authUser = await account.get();
       } catch (error) {
         // No session exists, proceed with login
         await account.createEmailPasswordSession(email, password);
-        const user = await account.get();
-        onLogin(user);
+        authUser = await account.get();
       }
+
+      // Get the user profile
+      const userProfile = await userService.getProfile(authUser.$id);
+
+      // Combine auth user and profile data
+      onLogin({ ...authUser, ...userProfile });
+
       toast({
         title: 'Login successful',
         status: 'success',
@@ -62,8 +82,12 @@ const Auth = ({ onLogin, colorMode, toggleColorMode }) => {
 
   async function register(email, password, name) {
     try {
-      await account.create(ID.unique(), email, password, name);
+      // Change 'account' to 'newAccount' to avoid variable shadowing
+      const newAccount = await account.create(ID.unique(), email, password, name);
+      await userService.createOrGetProfile(newAccount.$id, name);
+
       await login(email, password);
+
       toast({
         title: 'Registration successful',
         status: 'success',

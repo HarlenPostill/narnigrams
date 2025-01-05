@@ -1,4 +1,3 @@
-// src/pages/Dashboard.jsx
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -13,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { SunIcon, MoonIcon } from '@chakra-ui/icons';
 import { account } from '../lib/appwrite';
+import { userService } from '../lib/database';
 import StatCard from '../components/stats/StatCard';
 
 const Dashboard = ({ user, onLogout, colorMode, toggleColorMode }) => {
@@ -21,19 +21,24 @@ const Dashboard = ({ user, onLogout, colorMode, toggleColorMode }) => {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    // Simulate fetching stats data
-    // Replace this with your actual API call
     const fetchStats = async () => {
       try {
-        // Simulating API delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Get user profile from database
+        const userProfile = await userService.getProfile(user.$id);
 
-        // Replace this with your actual data fetching
-        setStats({
-          matchesPlayed: '42',
-          winRate: '68%',
-          totalScore: '1,337',
-        });
+        if (userProfile) {
+          // Calculate win rate
+          const winRate =
+            userProfile.gamesPlayed > 0
+              ? ((userProfile.gamesWon / userProfile.gamesPlayed) * 100).toFixed(1)
+              : 0;
+
+          setStats({
+            matchesPlayed: userProfile.gamesPlayed.toString(),
+            winRate: `${winRate}%`,
+            totalScore: userProfile.rating.toString(),
+          });
+        }
       } catch (error) {
         toast({
           title: 'Error loading stats',
@@ -47,7 +52,7 @@ const Dashboard = ({ user, onLogout, colorMode, toggleColorMode }) => {
     };
 
     fetchStats();
-  }, [toast]);
+  }, [user.$id, toast]);
 
   async function handleLogout() {
     try {
@@ -89,15 +94,11 @@ const Dashboard = ({ user, onLogout, colorMode, toggleColorMode }) => {
       </Flex>
 
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-        <StatCard
-          label="Matches Played"
-          value={stats?.matchesPlayed || '0'}
-          isLoading={isLoading}
-        />
+        <StatCard label="Games Played" value={stats?.matchesPlayed || '0'} isLoading={isLoading} />
         <StatCard label="Win Rate" value={stats?.winRate || '0%'} isLoading={isLoading} />
-        <StatCard label="Total Score" value={stats?.totalScore || '0'} isLoading={isLoading} />
+        <StatCard label="Rating" value={stats?.totalScore || '0'} isLoading={isLoading} />
         <Button colorScheme="green" w="full">
-          {' New Game'}
+          New Game
         </Button>
       </SimpleGrid>
     </Box>
@@ -106,6 +107,7 @@ const Dashboard = ({ user, onLogout, colorMode, toggleColorMode }) => {
 
 Dashboard.propTypes = {
   user: PropTypes.shape({
+    $id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
   }).isRequired,
   onLogout: PropTypes.func.isRequired,
