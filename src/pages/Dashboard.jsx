@@ -96,7 +96,7 @@ const Dashboard = ({ user, onLogout, colorMode, toggleColorMode }) => {
         />
         <StatCard label="Win Rate" value={stats?.winRate || '0%'} isLoading={isLoading} />
         <StatCard label="Total Score" value={stats?.totalScore || '0'} isLoading={isLoading} />
-        <Button colorScheme="blue" w="full">
+        <Button colorScheme="green" w="full">
           {' New Game'}
         </Button>
       </SimpleGrid>
